@@ -9,17 +9,17 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
+
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomDatePicker } from "@/components/ui/date-picker"
 
-import { uploadImage, getAllCategories, getAllProviders, type CategoryFormat } from "@/lib/firebase-service"
-import type { Activity, Provider } from "@/lib/types"
+import { uploadImage, getAllCategories, getUserById, type CategoryFormat } from "@/lib/firebase-service"
+import type { Activity } from "@/lib/types"
 import { useAuth } from "@/lib/auth-context"
 
 const formSchema = z
@@ -41,7 +41,6 @@ const formSchema = z
     featured: z.boolean().default(false),
     days: z.array(z.string()).min(1, { message: "At least one day is required." }),
     times: z.array(z.string()).min(1, { message: "At least one time is required." }),
-    provider: z.string().min(1, { message: "Please select a provider." }),
   })
   .refine((data) => !data.has_range || (data.start_date && data.end_date && data.start_date <= data.end_date), {
     message: "Start and end date are required and must be valid when range is enabled.",
@@ -55,14 +54,14 @@ interface ActivityFormProps {
   onSubmit?: (data: Partial<Activity>) => Promise<void>
 }
 
-export default function AdminActivityForm({ activity, onSubmit }: ActivityFormProps) {
+export default function ProviderActivityForm({ activity, onSubmit }: ActivityFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(activity?.image || null)
   const [categories, setCategories] = useState<CategoryFormat[]>([])
-  const [providers, setProviders] = useState<Provider[]>([])
+  const [userData, setUserData] = useState<any>(null)
 
   // Initialize form with default values or activity data
   const form = useForm<FormValues>({
@@ -79,7 +78,6 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
           times: activity.times || [],
           featured: activity.featured || false,
           imageFile: undefined,
-          provider: activity.provider?.id || "me",
         }
       : {
           name: "",
@@ -92,7 +90,6 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
           times: [],
           featured: false,
           imageFile: undefined,
-          provider: "me", // Default to current admin
         },
   })
 
@@ -110,19 +107,22 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
       })
   }, [toast])
 
-  // Load providers
+  // Load user data from Firestore
   useEffect(() => {
-    getAllProviders()
-      .then(setProviders)
-      .catch((err) => {
-        console.error("Failed to load providers", err)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not load providers",
+    if (user?.uid) {
+      getUserById(user.uid)
+        .then((data) => {
+          if (data) {
+            setUserData(data)
+          } else {
+            console.error("User data not found")
+          }
         })
-      })
-  }, [toast])
+        .catch((err) => {
+          console.error("Failed to load user data", err)
+        })
+    }
+  }, [user])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -161,24 +161,12 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
         payload.image = await uploadImage(values.imageFile, "activities")
       }
 
-      // Determine the provider object
-      if (values.provider === "me") {
-        // Use the current admin as provider
-        payload.provider = {
-          id: user.uid,
-          name: user.displayName || "Admin",
-          image: user.photoURL || "",
-        }
-      } else {
-        // Find the selected provider from the loaded providers list
-        const selectedProvider = providers.find((p) => p.id === values.provider)
-        if (selectedProvider) {
-          payload.provider = {
-            id: selectedProvider.id,
-            name: selectedProvider.name,
-            image: selectedProvider.image || "",
-          }
-        }
+      // Automatically set the provider to the current authenticated user
+      // Use fullName from users collection instead of displayName from auth
+      payload.provider = {
+        id: user.uid,
+        name: userData?.fullName || "Unnamed Provider", // Use fullName from Firestore
+        image: userData?.image || user.photoURL || "",
       }
 
       // Handle date range if enabled
@@ -300,36 +288,6 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
                       value={field.value}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Provider Dropdown - ADMIN ONLY */}
-            <FormField
-              control={form.control}
-              name="provider"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Provider</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a provider" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {/* "me" option for the admin */}
-                      <SelectItem value="me">Me (Admin)</SelectItem>
-                      {/* Map each provider from the loaded list */}
-                      {providers.map((prov) => (
-                        <SelectItem key={prov.id} value={prov.id}>
-                          {prov.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>Select who will provide this activity</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -494,6 +452,30 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
                 </FormItem>
               )}
             />
+
+            {/* Provider Information (Read-only) */}
+            <div className="border rounded-md p-4 bg-muted/20">
+              <h3 className="font-medium mb-2">Provider Information</h3>
+              <div className="flex items-center gap-3">
+                {userData?.image ? (
+                  <Image
+                    src={userData.image || "/placeholder.svg"}
+                    alt={userData?.fullName || "Provider"}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                    {(userData?.fullName || "U")[0]}
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium">{userData?.fullName || "Unnamed Provider"}</p>
+                  <p className="text-sm text-muted-foreground">Activity will be created under your profile</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
 
           <CardFooter className="flex justify-end gap-2">

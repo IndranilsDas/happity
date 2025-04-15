@@ -6,8 +6,15 @@ import { AuthProvider, useAuth } from "@/lib/auth-context"
 import { usePathname, useRouter } from "next/navigation"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import { Walter_Turncoat } from "next/font/google"
+
+const walterTurncoat = Walter_Turncoat({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 const inter = Inter({ subsets: ["latin"] })
+
 
 export default function RootLayout({
   children,
@@ -16,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${walterTurncoat.className} bg-white text-gray-900`}> 
         <AuthProvider>
           <AuthWrapper>{children}</AuthWrapper>
         </AuthProvider>
@@ -52,9 +59,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {!pathname.startsWith("/admin") && <Header />}
-      <main className="min-h-[calc(100vh-140px)]">{children}</main>
-      {!pathname.startsWith("/admin") && <Footer />}
+      {!pathname.startsWith("/admin") && !pathname.startsWith("/provider") && !pathname.startsWith("/sign-up") && !pathname.startsWith("/sign-in") && <Header />}
+      <main>{children}</main>
+      {!pathname.startsWith("/admin") && !pathname.startsWith("/provider") && !pathname.startsWith("/sign-up") && !pathname.startsWith("/sign-in") && <Footer />}
     </>
   )
 }

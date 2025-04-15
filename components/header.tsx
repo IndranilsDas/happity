@@ -14,7 +14,7 @@ export default function Header() {
           </Link>
         </p>
       </div>
-      <header className="flex justify-between items-center px-4 md:px-12 py-4 bg-white">
+      <header className="flex justify-between items-center px-4 md:px-12 py-2 bg-white">
         <Link href="/" className="flex items-center">
           <Image
             src="/placeholder.svg?height=60&width=200"
@@ -25,22 +25,22 @@ export default function Header() {
           />
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium">
+          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium text-sm">
             FIND AN ACTIVITY
           </Link>
-          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium">
+          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium text-sm">
             PND SUPPORT
           </Link>
-          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium">
+          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium text-sm">
             BLOG
           </Link>
-          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium">
+          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium text-sm">
             OFFERS
           </Link>
-          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium">
+          <Link href="#" className="text-gray-700 hover:text-purple-700 font-medium text-sm">
             ABOUT
           </Link>
-          <Link href="#" className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded font-medium">
+          <Link href="#" className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded font-medium text-sm">
             ADD ACTIVITY
           </Link>
           <Link href="#" className="text-purple-700">

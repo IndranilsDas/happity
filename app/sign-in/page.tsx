@@ -1,35 +1,39 @@
-"use client"
-
+'use client'
 import { useState } from "react"
-import { createUserWithEmailAndPassword } from "firebase/auth"
-import { doc, setDoc } from "firebase/firestore"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 
-export default function AuthSignup() {
-  const [fullName, setFullName] = useState("") // ✅ New full name field
+export default function AuthSignin() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<"customer" | "provider">("customer")
+  const [expectedRole, setExpectedRole] = useState<"customer" | "provider">("customer")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
 
-      await setDoc(doc(db, "users", user.uid), {
-        fullName, // ✅ Save full name to Firestore
-        email,
-        role,
-        createdAt: new Date(),
-      })
+      const userDocRef = doc(db, "users", user.uid)
+      const userDoc = await getDoc(userDocRef)
 
-      alert(`Signed up successfully as ${role}!`)
+      if (!userDoc.exists()) {
+        throw new Error("User data not found in Firestore.")
+      }
+
+      const userData = userDoc.data()
+      if (userData.role !== expectedRole) {
+        throw new Error(`This account is not registered as a "${expectedRole}".`)
+      }
+
+      alert(`Signed in successfully as ${expectedRole}!`)
+      // Redirect or perform actions after successful sign-in
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -39,36 +43,22 @@ export default function AuthSignup() {
 
   return (
     <div className="max-w-md mx-auto mt-16 p-8 rounded-2xl shadow-lg border border-gray-200 bg-white">
-      <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">Create an Account</h2>
+      <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">Sign In</h2>
 
-      <form onSubmit={handleSignup} className="space-y-5">
+      <form onSubmit={handleSignin} className="space-y-5">
         <div>
           <label htmlFor="role-select" className="block text-sm font-medium text-gray-700 mb-1">
             Account Type
           </label>
           <select
             id="role-select"
-            value={role}
-            onChange={(e) => setRole(e.target.value as "customer" | "provider")}
+            value={expectedRole}
+            onChange={(e) => setExpectedRole(e.target.value as "customer" | "provider")}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="customer">Customer</option>
             <option value="provider">Provider</option>
           </select>
-        </div>
-
-        <div>
-          <label htmlFor="name-input" className="block text-sm font-medium text-gray-700 mb-1">
-            Full Name
-          </label>
-          <input
-            id="name-input"
-            type="text"
-            value={fullName}
-            required
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
         </div>
 
         <div>
@@ -108,7 +98,7 @@ export default function AuthSignup() {
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {loading ? "Creating Account..." : "Sign Up"}
+          {loading ? "Signing In..." : "Sign In"}
         </button>
 
         {error && <p className="text-red-500 text-center text-sm">{error}</p>}

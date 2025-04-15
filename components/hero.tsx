@@ -23,7 +23,7 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
   }
 
   return (
-    <section className="relative bg-purple-700 py-16 md:py-24">
+    <section className="relative bg-purple-700 py-16 md:py-24 h-[85vh]">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-30"
         style={{
@@ -43,12 +43,12 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
               placeholder="Enter location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             />
           </div>
           <div className="relative flex-1">
             <select
-              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
+              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-full leading-5 bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
               value={age}
               onChange={(e) => setAge(e.target.value)}
             >
@@ -65,7 +65,7 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
           </div>
           <div className="relative flex-1">
             <select
-              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
+              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-full leading-5 bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
               value={day}
               onChange={(e) => setDay(e.target.value)}
             >
@@ -83,7 +83,7 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
             </div>
           </div>
           <button
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded"
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full"
             onClick={handleSearch}
           >
             GO!
@@ -97,10 +97,10 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
               placeholder="Enter the class name here"
               value={directQuery}
               onChange={(e) => setDirectQuery(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-l border border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="flex-1 px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             />
             <button
-              className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-r"
+              className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-full"
               onClick={handleDirectSearch}
             >
               <Search className="h-5 w-5" />

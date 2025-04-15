@@ -329,3 +329,18 @@ export async function updateCategoryInFirestore(
     description: data.description ?? "",
   })
 }
+
+export async function getUserById(userId: string) {
+  if (!userId) return null;
+  
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      return { id: userDoc.id, ...userDoc.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
+}

@@ -39,7 +39,7 @@ export default function FeaturedActivities() {
   return (
     <section className="py-16 px-4 md:px-12 bg-white">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-purple-700 mb-8 text-center">
+        <h2 className="text-3xl md:text-5xl font-bold text-purple-700 mb-8 text-center py-10">
           FEATURED ACTIVITIES
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -85,7 +85,7 @@ export default function FeaturedActivities() {
         <div className="text-center mt-8">
           <Link
             href="/activities"
-            className="inline-block bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-8 rounded"
+            className="inline-block bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-8 rounded-full"
           >
             VIEW ALL ACTIVITIES
           </Link>

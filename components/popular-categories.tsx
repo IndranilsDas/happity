@@ -1,30 +1,95 @@
-import Link from "next/link"
+"use client"
+
+import { useEffect, useState } from "react"
 import Image from "next/image"
-import { categories } from "@/lib/data"
+import Link from "next/link"
+import { getCategories } from "../lib/firebase-service"
+import type { Category } from "@/lib/types"
+import { Card, CardContent } from "@/components/ui/card"
+import { Prompt } from "next/font/google"
+
+
+
+const schoolbell = Prompt({
+  weight: "400",
+  subsets: ["latin"],
+})
+
 
 export default function PopularCategories() {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true)
+        const categoriesData = await getCategories()
+        setCategories(categoriesData)
+        setError(null)
+      } catch (err) {
+        console.error("Error fetching categories:", err)
+        setError("Failed to load categories. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="w-full py-12 text-center">
+        <div className="animate-pulse">Loading categories...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="w-full py-12 text-center text-red-500">
+        {error}
+      </div>
+    )
+  }
+
   return (
-    <section className="py-16 px-4 md:px-12 bg-white">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-purple-700 mb-12 text-center">MOST POPULAR CATEGORIES</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {categories.map((category, index) => (
+    <section className={`w-full py-12 px-4 md:px-6`}>
+      <div className="container mx-auto">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 text-purple-700">
+          MOST POPULAR CATEGORIES
+        </h2>
+
+        <div className="flex flex-wrap justify-center gap-6">
+          {categories.map((category) => (
             <Link
-              key={index}
-              href={`/categories/${category.name.toLowerCase().replace(/\s+/g, "-")}`}
-              className="relative group overflow-hidden rounded-md h-40"
+              href={`/categories/${category.id}`}
+              key={category.id}
+              className="block transition-transform hover:scale-105"
             >
-              <div className="absolute inset-0 bg-purple-700 opacity-60 group-hover:opacity-70 transition-opacity"></div>
-              <Image
-                src={category.image || "/placeholder.svg"}
-                alt={category.name}
-                width={300}
-                height={160}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h3 className="text-white text-xl font-bold text-center">{category.name}</h3>
-              </div>
+              <Card className="w-64 h-64 overflow-hidden border-0 rounded-xl shadow-md">
+                <div className="relative w-full h-full">
+                  {category.image ? (
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="bg-purple-300 w-full h-full" />
+                  )}
+                  <div className="absolute inset-0 bg-purple-900/60 flex items-center justify-center">
+                    <CardContent className="p-0">
+                      <h3 className="text-white text-2xl font-bold text-center">
+                        {category.name.toUpperCase()}
+                      </h3>
+                    </CardContent>
+                  </div>
+                </div>
+              </Card>
             </Link>
           ))}
         </div>
@@ -32,4 +97,3 @@ export default function PopularCategories() {
     </section>
   )
 }
-
