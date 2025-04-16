@@ -41,6 +41,10 @@ const formSchema = z
     featured: z.boolean().default(false),
     days: z.array(z.string()).min(1, { message: "At least one day is required." }),
     times: z.array(z.string()).min(1, { message: "At least one time is required." }),
+    // Add location fields
+    address: z.string().min(1, { message: "Address is required." }),
+    city: z.string().min(1, { message: "City is required." }),
+    postcode: z.string().min(1, { message: "Postcode is required." }),
   })
   .refine((data) => !data.has_range || (data.start_date && data.end_date && data.start_date <= data.end_date), {
     message: "Start and end date are required and must be valid when range is enabled.",
@@ -78,6 +82,10 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
           times: activity.times || [],
           featured: activity.featured || false,
           imageFile: undefined,
+          // Add location fields with default values from activity
+          address: activity.location?.address || "",
+          city: activity.location?.city || "",
+          postcode: activity.location?.postcode || "",
         }
       : {
           name: "",
@@ -90,6 +98,10 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
           times: [],
           featured: false,
           imageFile: undefined,
+          // Add empty location fields
+          address: "",
+          city: "",
+          postcode: "",
         },
   })
 
@@ -154,6 +166,12 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
         days: values.days,
         times: values.times,
         featured: values.featured,
+        // Add location object
+        location: {
+          address: values.address,
+          city: values.city,
+          postcode: values.postcode,
+        },
       }
 
       // Upload the image if provided
@@ -292,6 +310,56 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
                 </FormItem>
               )}
             />
+
+            {/* Location Fields */}
+            <div className="space-y-4 border rounded-md p-4">
+              <h3 className="font-medium">Location</h3>
+
+              {/* Address */}
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Street address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* City */}
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="City" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Postcode */}
+              <FormField
+                control={form.control}
+                name="postcode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Postcode</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Postcode" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Date Range Toggle */}
             <FormField

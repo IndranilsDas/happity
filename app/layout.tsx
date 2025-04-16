@@ -11,10 +11,9 @@ import { Walter_Turncoat } from "next/font/google"
 const walterTurncoat = Walter_Turncoat({
   weight: "400",
   subsets: ["latin"],
-});
+})
 
 const inter = Inter({ subsets: ["latin"] })
-
 
 export default function RootLayout({
   children,
@@ -23,11 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${walterTurncoat.className} bg-white text-gray-900`}> 
-        <AuthProvider>
-          <AuthWrapper>{children}</AuthWrapper>
-        </AuthProvider>
-      </body>
+      <AuthProvider>
+        <AuthWrapper>{children}</AuthWrapper>
+      </AuthProvider>
     </html>
   )
 }
@@ -37,13 +34,18 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
+  const isAdminOrProvider = pathname.startsWith("/admin") || pathname.startsWith("/provider")
+
   useEffect(() => {
     if (loading) return
 
-    // Redirect rules
     if (pathname.startsWith("/admin") && role !== "admin") {
       router.push("/")
     }
+    if (pathname.startsWith("/provider") && role !== "provider") {
+      router.push("/")
+    }
+
     if (pathname.startsWith("/protected") && !user) {
       router.push("/sign-up")
     }
@@ -51,17 +53,23 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <body className={`${inter.className} bg-white text-gray-900`}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </body>
     )
   }
 
   return (
-    <>
-      {!pathname.startsWith("/admin") && !pathname.startsWith("/provider") && !pathname.startsWith("/sign-up") && !pathname.startsWith("/sign-in") && <Header />}
+    <body className={`${isAdminOrProvider ? inter.className : walterTurncoat.className} bg-white text-gray-900`}>
+      {!isAdminOrProvider &&
+        !pathname.startsWith("/sign-up") &&
+        !pathname.startsWith("/sign-in") && <Header />}
       <main>{children}</main>
-      {!pathname.startsWith("/admin") && !pathname.startsWith("/provider") && !pathname.startsWith("/sign-up") && !pathname.startsWith("/sign-in") && <Footer />}
-    </>
+      {!isAdminOrProvider &&
+        !pathname.startsWith("/sign-up") &&
+        !pathname.startsWith("/sign-in") && <Footer />}
+    </body>
   )
 }

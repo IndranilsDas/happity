@@ -7,14 +7,12 @@ import { getCategories } from "../lib/firebase-service"
 import type { Category } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Prompt } from "next/font/google"
-
-
+import { motion, AnimatePresence, MotionConfig } from "framer-motion"
 
 const schoolbell = Prompt({
   weight: "400",
   subsets: ["latin"],
 })
-
 
 export default function PopularCategories() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -39,61 +37,161 @@ export default function PopularCategories() {
     fetchCategories()
   }, [])
 
-  if (loading) {
-    return (
-      <div className="w-full py-12 text-center">
-        <div className="animate-pulse">Loading categories...</div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="w-full py-12 text-center text-red-500">
-        {error}
-      </div>
-    )
-  }
-
   return (
-    <section className={`w-full py-12 px-4 md:px-6`}>
-      <div className="container mx-auto">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 text-purple-700">
-          MOST POPULAR CATEGORIES
-        </h2>
+    <MotionConfig reducedMotion="user">
+      <section className="w-full py-12 px-4 md:px-6">
+        <motion.div
+          className="container mx-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7 }}
+        >
+          <motion.h2
+            className="text-4xl md:text-5xl font-bold text-center mb-12 text-purple-700"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              type: "spring",
+              stiffness: 100,
+            }}
+          >
+            MOST POPULAR CATEGORIES
+          </motion.h2>
 
-        <div className="flex flex-wrap justify-center gap-6">
-          {categories.map((category) => (
-            <Link
-              href={`/categories/${category.id}`}
-              key={category.id}
-              className="block transition-transform hover:scale-105"
-            >
-              <Card className="w-64 h-64 overflow-hidden border-0 rounded-xl shadow-md">
-                <div className="relative w-full h-full">
-                  {category.image ? (
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="bg-purple-300 w-full h-full" />
-                  )}
-                  <div className="absolute inset-0 bg-purple-900/60 flex items-center justify-center">
-                    <CardContent className="p-0">
-                      <h3 className="text-white text-2xl font-bold text-center">
-                        {category.name.toUpperCase()}
-                      </h3>
-                    </CardContent>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                className="w-full py-12 flex flex-col items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "linear",
+                  }}
+                />
+                <motion.p
+                  className="mt-4 text-xl font-medium text-purple-500"
+                  animate={{
+                    opacity: [0.5, 1, 0.5],
+                    scale: [0.98, 1.02, 0.98],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    repeatType: "reverse",
+                  }}
+                >
+                  Loading categories...
+                </motion.p>
+              </motion.div>
+            ) : error ? (
+              <motion.div
+                key="error"
+                className="w-full py-12 text-center text-red-500"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.5 }}
+              >
+                <motion.div
+                  animate={{
+                    x: [0, -5, 5, -5, 5, 0],
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.2,
+                  }}
+                >
+                  {error}
+                </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="content"
+                className="flex flex-wrap justify-center gap-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {categories.map((category, i) => (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: 0.6,
+                        delay: i * 0.1,
+                        type: "spring",
+                        damping: 12,
+                      },
+                    }}
+                    exit={{ opacity: 0, y: 20 }}
+                  >
+                    <Link href={`/categories/${category.id}`} className="block">
+                      <motion.div
+                        whileHover={{
+                          scale: 1.05,
+                          boxShadow: "0 10px 25px rgba(124, 58, 237, 0.2)",
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 17,
+                        }}
+                      >
+                        <Card className="w-64 h-64 overflow-hidden border-0 rounded-xl shadow-md">
+                          <div className="relative w-full h-full">
+                            {category.image ? (
+                              <Image
+                                src={category.image || "/placeholder.svg"}
+                                alt={category.name}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="bg-purple-300 w-full h-full" />
+                            )}
+                            <motion.div
+                              className="absolute inset-0 bg-purple-900/60 flex items-center justify-center"
+                              initial={{ opacity: 0.7 }}
+                              whileHover={{
+                                opacity: 0.9,
+                                background: "rgba(126, 34, 206, 0.7)",
+                              }}
+                            >
+                              <CardContent className="p-0">
+                                <motion.h3
+                                  className={`${schoolbell.className} text-white text-2xl font-bold text-center px-4`}
+                                  whileHover={{ scale: 1.1 }}
+                                  transition={{ type: "spring", stiffness: 300 }}
+                                >
+                                  {category.name.toUpperCase()}
+                                </motion.h3>
+                              </CardContent>
+                            </motion.div>
+                          </div>
+                        </Card>
+                      </motion.div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </section>
+    </MotionConfig>
   )
 }

@@ -1,11 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Search, ChevronDown } from "lucide-react"
+import { motion, useAnimation, useInView } from "framer-motion"
 
 interface HeroProps {
   onSearch: (location: string, age: string, day: string) => void
   onDirectSearch: (query: string) => void
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+}
+
+const popIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
 }
 
 export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
@@ -13,6 +32,16 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
   const [age, setAge] = useState("")
   const [day, setDay] = useState("")
   const [directQuery, setDirectQuery] = useState("")
+
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+  const controls = useAnimation()
+
+  useEffect(() => {
+    if (isInView) {
+      controls.start("visible")
+    }
+  }, [isInView, controls])
 
   const handleSearch = () => {
     onSearch(location, age, day)
@@ -23,7 +52,10 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
   }
 
   return (
-    <section className="relative bg-purple-700 py-16 md:py-24 h-[85vh]">
+    <section
+      ref={ref}
+      className="relative bg-purple-700 py-16 md:py-24 h-[85vh]"
+    >
       <div
         className="absolute inset-0 bg-cover bg-center opacity-30"
         style={{
@@ -32,8 +64,21 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
         }}
       ></div>
       <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
-        <h1 className="text-3xl md:text-5xl font-bold text-white mb-12">FIND BABY AND TODDLER CLASSES NEAR YOU</h1>
-        <div className="flex flex-col md:flex-row gap-2 max-w-4xl mx-auto mb-8">
+        <motion.h1
+          className="text-3xl md:text-5xl font-bold text-white mb-12"
+          variants={popIn}
+          initial="hidden"
+          animate={controls}
+        >
+          FIND BABY AND TODDLER CLASSES NEAR YOU
+        </motion.h1>
+
+        <motion.div
+          className="flex flex-col md:flex-row gap-2 max-w-4xl mx-auto mb-8"
+          variants={fadeUp}
+          initial="hidden"
+          animate={controls}
+        >
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
@@ -88,9 +133,17 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
           >
             GO!
           </button>
-        </div>
-        <div className="mt-8">
-          <p className="text-white mb-4">Already know which class you&apos;re looking for?</p>
+        </motion.div>
+
+        <motion.div
+          className="mt-8"
+          variants={fadeUp}
+          initial="hidden"
+          animate={controls}
+        >
+          <p className="text-white mb-4">
+            Already know which class you&apos;re looking for?
+          </p>
           <div className="flex max-w-xl mx-auto">
             <input
               type="text"
@@ -106,9 +159,8 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
               <Search className="h-5 w-5" />
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )
 }
-

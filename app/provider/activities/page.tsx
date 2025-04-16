@@ -30,6 +30,7 @@ import {
 } from "@/lib/firebase-service"
 import ActivityForm from "@/components/provider/providers-activity-form"
 import ProviderDrawer from "@/components/provider/provider-drawer"
+import { getUserById } from "@/lib/firebase-service"
 export default function ProviderActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [filteredActivities, setFilteredActivities] = useState<Activity[]>([])
@@ -38,9 +39,24 @@ export default function ProviderActivitiesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
+  const [userData, setUserData] = useState<any>(null)
   const { toast } = useToast()
   const { user } = useAuth()
-
+ useEffect(() => {
+     if (user?.uid) {
+       getUserById(user.uid)
+         .then((data) => {
+           if (data) {
+             setUserData(data)
+           } else {
+             console.error("User data not found")
+           }
+         })
+         .catch((err) => {
+           console.error("Failed to load user data", err)
+         })
+     }
+   }, [user])
   useEffect(() => {
     if (user?.uid) {
       fetchActivities()
@@ -100,13 +116,14 @@ export default function ProviderActivitiesPage() {
 
   const handleFormSubmit = async (data: Partial<Activity>) => {
     if (!user) return
+    console.log("user",user,userData)
     try {
       const payload = {
         ...data,
         provider: {
           id: user.uid,
-          name: user.displayName || "Unnamed Provider",
-          image: user.photoURL || "",
+          name: userData?.fullName || "Unnamed Provider",
+          image: userData?.image || user.photoURL || "",
         },
       }
 

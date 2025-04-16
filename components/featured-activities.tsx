@@ -14,10 +14,7 @@ export default function FeaturedActivities() {
     async function fetchFeatured() {
       try {
         const all = await getAllActivities()
-        // If you have an `featured` boolean in your Activity docs:
         const featured = all.filter((a) => (a as any).featured)
-        // Otherwise, just pick the first 6:
-        // const featured = all.slice(0, 6)
         setFeaturedActivities(featured)
       } catch (err) {
         console.error("Error loading activities", err)
@@ -39,17 +36,18 @@ export default function FeaturedActivities() {
   return (
     <section className="py-16 px-4 md:px-12 bg-white">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-5xl font-bold text-purple-700 mb-8 text-center py-10">
+        <h1 className="text-3xl md:text-5xl font-bold text-purple-700 mb-12 text-center">
           FEATURED ACTIVITIES
-        </h2>
+        </h1>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredActivities.map((activity) => (
             <Link
               key={activity.id}
               href={`/activities/${activity.id}`}
-              className="group"
+              className="group hover:scale-105 hover:bg-purple-200 duration-300 block"
             >
-              <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform group-hover:shadow-lg">
+              <div className="rounded-lg shadow-md overflow-hidden transition-transform group-hover:shadow-lg">
                 <div className="relative h-48">
                   <Image
                     src={activity.image || "/placeholder.svg"}
@@ -82,6 +80,7 @@ export default function FeaturedActivities() {
             </Link>
           ))}
         </div>
+
         <div className="text-center mt-8">
           <Link
             href="/activities"
