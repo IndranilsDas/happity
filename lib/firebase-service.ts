@@ -14,6 +14,7 @@ import {
   Timestamp,
   query,
   where,
+  orderBy,
 } from "firebase/firestore"
 import {
   ref,
@@ -30,11 +31,10 @@ import {
   PNDResource,
 } from "../lib/types"
 
-// Helper to convert Firestore snapshots to typed objects
+// ───────────── Helper ─────────────
+
 type WithId = { id: string }
-const converter = <T extends WithId>(
-  doc: QueryDocumentSnapshot<DocumentData>
-): T => {
+const converter = <T extends WithId>(doc: QueryDocumentSnapshot<DocumentData>): T => {
   const data = doc.data() as Omit<T, "id">
   return { id: doc.id, ...data } as T
 }
@@ -54,7 +54,6 @@ export const getActivityById = async (id: string): Promise<Activity | null> => {
 
 export const getAllActivities = getActivities
 
-// Create a new activity, defaulting featured to false
 export const addActivity = async (
   activity: Omit<Activity, "id">
 ): Promise<string> => {
@@ -67,7 +66,6 @@ export const addActivity = async (
   return docRef.id
 }
 
-// Update existing activity (will update featured if included)
 export const updateActivity = async (
   id: string,
   activity: Partial<Activity>
@@ -88,7 +86,6 @@ export const getActivitiesCount = async (): Promise<number> => {
   return snap.size
 }
 
-// Fetch only those marked featured
 export const getFeaturedActivities = async (): Promise<Activity[]> => {
   const q = query(
     collection(db, "activities"),
@@ -193,9 +190,7 @@ export const getCategories = async (): Promise<Category[]> => {
   return snap.docs.map(d => converter<Category>(d))
 }
 
-export const getCategoryById = async (
-  id: string
-): Promise<Category | null> => {
+export const getCategoryById = async (id: string): Promise<Category | null> => {
   const refDoc = doc(db, "categories", id)
   const snap = await getDoc(refDoc)
   return snap.exists() ? converter<Category>(snap) : null
@@ -239,9 +234,7 @@ export const getResources = async (): Promise<PNDResource[]> => {
   return snap.docs.map(d => converter<PNDResource>(d))
 }
 
-export const getResourceById = async (
-  id: string
-): Promise<PNDResource | null> => {
+export const getResourceById = async (id: string): Promise<PNDResource | null> => {
   const refDoc = doc(db, "resources", id)
   const snap = await getDoc(refDoc)
   return snap.exists() ? converter<PNDResource>(snap) : null
@@ -330,17 +323,63 @@ export async function updateCategoryInFirestore(
   })
 }
 
+// ───────────── User ─────────────
+
 export async function getUserById(userId: string) {
-  if (!userId) return null;
-  
+  if (!userId) return null
+
   try {
-    const userDoc = await getDoc(doc(db, "users", userId));
+    const userDoc = await getDoc(doc(db, "users", userId))
     if (userDoc.exists()) {
-      return { id: userDoc.id, ...userDoc.data() };
+      return { id: userDoc.id, ...userDoc.data() }
     }
-    return null;
+    return null
   } catch (error) {
-    console.error("Error fetching user:", error);
-    return null;
+    console.error("Error fetching user:", error)
+    return null
   }
+}
+
+// ───────────── Bookings ─────────────
+
+interface BookingData {
+  userId: string
+  userName: string
+  userEmail: string
+  phone?: string
+  babyAge?: string
+  activityId: string
+  activityTitle: string
+  bookingDate: string
+  participants: number
+  status: "pending" | "confirmed" | "cancelled"
+  createdAt: Date
+}
+
+export const createBooking = async (bookingData: BookingData): Promise<string> => {
+  const docRef = await addDoc(collection(db, "bookings"), {
+    ...bookingData,
+    createdAt: serverTimestamp(),
+  })
+  return docRef.id
+}
+
+export const getUserBookings = async (userId: string) => {
+  const q = query(
+    collection(db, "bookings"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((doc) => converter<BookingData & WithId>(doc))
+}
+
+export const getActivityBookings = async (activityId: string) => {
+  const q = query(
+    collection(db, "bookings"),
+    where("activityId", "==", activityId),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((doc) => converter<BookingData & WithId>(doc))
 }

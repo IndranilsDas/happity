@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Hero from "@/components/hero"
 import PopularCategories from "@/components/popular-categories"
 import WagamamaPromo from "@/components/wagamama-promo"
@@ -14,6 +14,7 @@ import Newsletter from "@/components/newsletter"
 import FeaturedActivities from "@/components/featured-activities"
 import { searchActivities } from "@/lib/data"
 import SearchResults from "@/components/search-results"
+
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -38,6 +39,7 @@ export default function Home() {
     const results = searchActivities(query)
     setSearchResults(results)
   }
+
 
   return (
     <main>
