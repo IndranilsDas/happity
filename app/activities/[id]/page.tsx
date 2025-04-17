@@ -168,10 +168,10 @@ export default function ActivityDetailPage() {
                   <AlertDescription>
                     Please{" "}
                     <button
-                      onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/activity/${activityId}`)}`)}
+                      onClick={() => router.push(`/sign-up`)}
                       className="font-medium underline"
                     >
-                      login
+                      sign-up
                     </button>{" "}
                     to book this activity.
                   </AlertDescription>

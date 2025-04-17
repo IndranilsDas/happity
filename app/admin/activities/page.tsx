@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast"
 import ActivityForm from "@/components/admin/activity-form"
 import ActivityDetails from "@/components/admin/activity-details"
 import AdminDrawer from "@/components/admin/admin-drawer"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function ActivitiesPage() {
   const router = useRouter()
@@ -29,13 +30,11 @@ export default function ActivitiesPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
-  
+
   console.log("User, role:", user, role)
   useEffect(() => {
     fetchActivities()
   }, [])
-
-
 
   useEffect(() => {
     if (searchQuery) {
@@ -114,6 +113,17 @@ export default function ActivitiesPage() {
       fetchActivities()
     } catch {
       toast({ variant: "destructive", title: "Error", description: "Save failed" })
+    }
+  }
+
+  async function handleStatusChange(activity: Activity, newStatus: Activity["status"]) {
+    try {
+      await updateActivity(activity.id, { status: newStatus })
+      setActivities((prev) => prev.map((a) => (a.id === activity.id ? { ...a, status: newStatus } : a)))
+      toast({ title: "Updated", description: `Status changed to ${newStatus}` })
+    } catch (error) {
+      console.error("Error updating status:", error)
+      toast({ variant: "destructive", title: "Error", description: "Status update failed" })
     }
   }
 
@@ -199,19 +209,49 @@ export default function ActivitiesPage() {
 
                     <TableCell>{activity.price}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          activity.status === "completed"
-                            ? "default"
-                            : activity.status === "ongoing"
-                              ? "secondary"
-                              : activity.status === "upcoming"
-                                ? "outline"
-                                : "destructive"
-                        }
-                      >
-                        {activity.status || "Unknown"}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-full justify-start p-2">
+                            <Badge
+                              variant={
+                                activity.status === "completed"
+                                  ? "default"
+                                  : activity.status === "ongoing"
+                                    ? "secondary"
+                                    : activity.status === "upcoming"
+                                      ? "outline"
+                                      : "destructive"
+                              }
+                            >
+                              {activity.status || "Unknown"}
+                            </Badge>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleStatusChange(activity, "upcoming")}>
+                            <Badge variant="outline" className="mr-2">
+                              upcoming
+                            </Badge>
+                            Set as Upcoming
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(activity, "ongoing")}>
+                            <Badge variant="secondary" className="mr-2">
+                              ongoing
+                            </Badge>
+                            Set as Ongoing
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(activity, "completed")}>
+                            <Badge className="mr-2">completed</Badge>
+                            Set as Completed
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(activity, "cancelled")}>
+                            <Badge variant="destructive" className="mr-2">
+                              cancelled
+                            </Badge>
+                            Set as Cancelled
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
