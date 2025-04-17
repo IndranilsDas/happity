@@ -77,7 +77,7 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
           description: activity.description,
           category: activity.category,
           ageRange: activity.ageRange,
-          price: Number.parseFloat(activity.price) || 0,
+          price: activity.price ? Number.parseFloat(activity.price) : 0,
           has_range: false,
           days: activity.days || [],
           times: activity.times || [],
@@ -144,6 +144,7 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
     }
   }
 
+  // Improve the handleSubmit function to handle errors better
   async function handleSubmit(values: FormValues) {
     if (!user) {
       toast({
@@ -168,15 +169,25 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
         featured: values.featured,
         // Add location object
         location: {
-          address: values.address,
-          city: values.city,
-          postcode: values.postcode,
+          address: values.address || "",
+          city: values.city || "",
+          postcode: values.postcode || "",
         },
+        status: "completed", // Set status to completed for admin-created activities
       }
 
       // Upload the image if provided
       if (values.imageFile instanceof File) {
-        payload.image = await uploadImage(values.imageFile, "activities")
+        try {
+          payload.image = await uploadImage(values.imageFile, "activities")
+        } catch (imageError) {
+          console.error("Image upload failed:", imageError)
+          toast({
+            variant: "destructive",
+            title: "Warning",
+            description: "Image upload failed, but activity will be created without an image",
+          })
+        }
       }
 
       // Determine the provider object
@@ -204,6 +215,8 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
         payload.date = `${values.start_date.toLocaleDateString()} - ${values.end_date.toLocaleDateString()}`
       }
 
+      console.log("Submitting activity payload:", payload)
+
       if (onSubmit) {
         await onSubmit(payload)
       }
@@ -216,11 +229,11 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
       setPreviewUrl(null)
       router.back()
     } catch (err) {
-      console.error(err)
+      console.error("Activity submission error:", err)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save activity",
+        description: "Failed to save activity. Please check console for details.",
       })
     } finally {
       setIsLoading(false)
@@ -314,8 +327,11 @@ export default function AdminActivityForm({ activity, onSubmit }: ActivityFormPr
                       type="number"
                       placeholder="e.g. 12"
                       {...field}
-                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
-                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value === "" ? "" : Number.parseFloat(e.target.value)
+                        field.onChange(value)
+                      }}
+                      value={field.value == null ? "" : field.value}
                     />
                   </FormControl>
                   <FormMessage />

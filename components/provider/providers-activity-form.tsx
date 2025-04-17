@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -166,24 +165,34 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
         days: values.days,
         times: values.times,
         featured: values.featured,
-        // Add location object
+        // Add location object with defaults for missing values
         location: {
-          address: values.address,
-          city: values.city,
-          postcode: values.postcode,
+          address: values.address || "",
+          city: values.city || "",
+          postcode: values.postcode || "",
         },
+        status: "ongoing", // Changed from "upcoming" to "ongoing" as per requirements
       }
 
       // Upload the image if provided
       if (values.imageFile instanceof File) {
-        payload.image = await uploadImage(values.imageFile, "activities")
+        try {
+          payload.image = await uploadImage(values.imageFile, "activities")
+        } catch (imageError) {
+          console.error("Image upload failed:", imageError)
+          toast({
+            variant: "destructive",
+            title: "Warning",
+            description: "Image upload failed, but activity will be created without an image",
+          })
+        }
       }
 
       // Automatically set the provider to the current authenticated user
       // Use fullName from users collection instead of displayName from auth
       payload.provider = {
         id: user.uid,
-        name: userData?.fullName || "Unnamed Provider", // Use fullName from Firestore
+        name: userData?.fullName || user.displayName || "Unnamed Provider", // Fallback to auth displayName
         image: userData?.image || user.photoURL || "",
       }
 
@@ -191,6 +200,8 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
       if (values.has_range && values.start_date && values.end_date) {
         payload.date = `${values.start_date.toLocaleDateString()} - ${values.end_date.toLocaleDateString()}`
       }
+
+      console.log("Submitting provider activity payload:", payload)
 
       if (onSubmit) {
         await onSubmit(payload)
@@ -204,11 +215,11 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
       setPreviewUrl(null)
       router.back()
     } catch (err) {
-      console.error(err)
+      console.error("Activity submission error:", err)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save activity",
+        description: "Failed to save activity. Please check console for details.",
       })
     } finally {
       setIsLoading(false)
@@ -302,8 +313,11 @@ export default function ProviderActivityForm({ activity, onSubmit }: ActivityFor
                       type="number"
                       placeholder="e.g. 12"
                       {...field}
-                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
-                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value === "" ? 0 : Number.parseFloat(e.target.value)
+                        field.onChange(value)
+                      }}
+                      value={field.value === 0 ? "" : field.value}
                     />
                   </FormControl>
                   <FormMessage />
