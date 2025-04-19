@@ -61,3 +61,16 @@ export type PNDResource = {
   description: string
   link: string
 }
+interface BookingData {
+  userId: string
+  userName: string
+  userEmail: string
+  phone?: string
+  babyAge?: string
+  activityId: string
+  activityTitle: string
+  bookingDate: string
+  participants: number
+  status: "pending" | "confirmed" | "cancelled"
+  createdAt: Date
+}

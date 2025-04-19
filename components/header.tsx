@@ -1,8 +1,21 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "../lib/auth-context"  // adjust path to your AuthContext file
 
 export default function Header() {
+  const router = useRouter()
+  const { user, role, loading } = useAuth()
+
+  const handleProfileClick = () => {
+    if (user && role === "customer") {
+      router.push(`/profile/${user.uid}`)
+    }
+  }
+
   return (
     <>
       <div className="bg-yellow-400 py-3 text-center">
@@ -43,9 +56,13 @@ export default function Header() {
           <Link href="#" className="bg-yellow-400 hover:bg-purple-500 text-black hover:text-white duration-300 px-4 py-2 rounded font-medium text-sm">
             ADD ACTIVITY
           </Link>
-          <Link href="#" className="text-purple-700">
-            <User size={24} />
-          </Link>
+          {loading ? (
+            <span className="text-gray-400">Loading...</span>
+          ) : role === "customer" && user ? (
+            <button onClick={handleProfileClick} className="text-purple-700">
+              <User size={24} />
+            </button>
+          ) : null}
         </nav>
         <div className="md:hidden">
           {/* Mobile menu button would go here */}
@@ -71,4 +88,3 @@ export default function Header() {
     </>
   )
 }
-

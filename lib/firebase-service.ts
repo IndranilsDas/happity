@@ -383,3 +383,86 @@ export const getActivityBookings = async (activityId: string) => {
   const snap = await getDocs(q)
   return snap.docs.map((doc) => converter<BookingData & WithId>(doc))
 }
+
+export const getAllBookings = async () => {
+  const q = query(
+    collection(db, "bookings"),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((doc) => converter<BookingData & WithId>(doc))
+}
+
+// Add this function to update booking status
+export const updateBookingStatus = async (
+  bookingId: string, 
+  status: "pending" | "confirmed" | "cancelled"
+): Promise<void> => {
+  const bookingRef = doc(db, "bookings", bookingId)
+  await updateDoc(bookingRef, { 
+    status,
+    updatedAt: serverTimestamp()
+  })
+}
+
+interface UserProfile {
+  fullName?: string
+  email?: string
+  role?: string
+  profile_img?: string
+  emailVerified?: boolean
+  [key: string]: any
+}
+
+export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+  if (!userId) return null
+
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId))
+    if (userDoc.exists()) {
+      return { id: userDoc.id, ...userDoc.data() } as UserProfile
+    }
+    return null
+  } catch (error) {
+    console.error("Error fetching user profile:", error)
+    return null
+  }
+}
+
+export const updateUserProfile = async (userId: string, profileData: Partial<UserProfile>): Promise<void> => {
+  if (!userId) throw new Error("User ID is required")
+
+  try {
+    const userRef = doc(db, "users", userId)
+    await updateDoc(userRef, {
+      ...profileData,
+      updatedAt: serverTimestamp(),
+    })
+  } catch (error) {
+    console.error("Error updating user profile:", error)
+    throw error
+  }
+}
+
+export const uploadProfileImage = async (userId: string, file: File): Promise<string> => {
+  if (!userId || !file) throw new Error("User ID and file are required")
+
+  try {
+    // Create a reference to the storage location
+    const storageRef = ref(storage, `profile_images/${userId}/${Date.now()}_${file.name}`)
+
+    // Upload the file
+    await uploadBytes(storageRef, file)
+
+    // Get the download URL
+    const downloadUrl = await getDownloadURL(storageRef)
+
+    // Update the user profile with the new image URL
+    await updateUserProfile(userId, { profile_img: downloadUrl })
+
+    return downloadUrl
+  } catch (error) {
+    console.error("Error uploading profile image:", error)
+    throw error
+  }
+}

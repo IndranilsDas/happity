@@ -40,7 +40,7 @@ export default function ActivityDetailPage() {
       fetchActivity()
     }
   }, [activityId])
-
+  console.log("User and Admin",user, role)
   // Check if user is logged in and has customer role
   const isCustomer = user && role === "customer"
   
