@@ -1,71 +1,213 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Search, ChevronDown } from "lucide-react"
-import { motion, useAnimation, useInView } from "framer-motion"
+import { useState, useRef, useEffect } from "react";
+import { Search, ChevronDown } from "lucide-react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { FaPaw } from "react-icons/fa";
+import { HiMiniPuzzlePiece } from "react-icons/hi2";
+import { Fuzzy_Bubbles } from "next/font/google";
+import { Over_the_Rainbow } from "next/font/google";
+import { Indie_Flower } from "next/font/google";
+import { Sunshiney } from "next/font/google";
+import { Rock_Salt } from "next/font/google";
+import { Grechen_Fuemen } from "next/font/google";
+import { Knewave } from "next/font/google";
+import { Gloria_Hallelujah } from "next/font/google";
+import { FaUmbrellaBeach } from "react-icons/fa6";
+import { RiBearSmileFill } from "react-icons/ri";
+import { GiMusicalNotes } from "react-icons/gi";
+import { BiSolidBabyCarriage } from "react-icons/bi";
+import { RiStarSmileFill } from "react-icons/ri";
+import { FaRegFaceSmileBeam } from "react-icons/fa6";
+import { DynaPuff } from "next/font/google";
+
+const gloriahallelujah = Gloria_Hallelujah({ subsets: ["latin"], weight: "400" });
+const knewave = Knewave({ subsets: ["latin"], weight: "400" });
+const grechenFuemen = Grechen_Fuemen({ subsets: ["latin"], weight: "400" });
+const rockSalt = Rock_Salt({ subsets: ["latin"], weight: "400" });
+const fuzzyBubbles = Fuzzy_Bubbles({ subsets: ["latin"], weight: "700" });
+const overTheRainbow = Over_the_Rainbow({ subsets: ["latin"], weight: "400" });
+const indieFlower = Indie_Flower({ subsets: ["latin"], weight: "400" });
+const sunshiney = Sunshiney({ subsets: ["latin"], weight: "400" });
+const dynapuff = DynaPuff({
+  subsets: ["latin"],
+  weight: "400",
+})
 
 interface HeroProps {
-  onSearch: (location: string, age: string, day: string) => void
-  onDirectSearch: (query: string) => void
+  onSearch: (location: string, age: string, day: string) => void;
+  onDirectSearch: (query: string) => void;
 }
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-}
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+};
 
 const popIn = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.7, ease: "easeOut" },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.7, ease: "easeOut" } },
+};
+
+// common bounce settings for subtle up/down motion
+const bounceTransition = {
+  y: { duration: 3, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+  x: { duration: 6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+};
+
+const floatVariant = {
+  animate: {
+    y: [0, -20, 0],
+    x: [0, 10, -10, 0],
+    transition: bounceTransition,
   },
-}
+};
+
+const pawVariant = {
+  animate: {
+    y: [0, -15, 0],
+    rotate: [0, 360],
+    transition: {
+      y: { duration: 3, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+      rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+    },
+  },
+};
+
+const rotateVariant = {
+  animate: {
+    y: [0, -10, 0],
+    x: [0, 5, -5, 0],
+    rotate: [0, 360],
+    transition: {
+      ...bounceTransition,
+      rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+    },
+  },
+};
+
+const rotateantiVariant = {
+  animate: {
+    y: [0, -10, 0],
+    x: [0, 5, -5, 0],
+    rotate: [0, -360],
+    transition: {
+      ...bounceTransition,
+      rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+    },
+  },
+};
 
 export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
-  const [location, setLocation] = useState("")
-  const [age, setAge] = useState("")
-  const [day, setDay] = useState("")
-  const [directQuery, setDirectQuery] = useState("")
+  const [location, setLocation] = useState("");
+  const [age, setAge] = useState("");
+  const [day, setDay] = useState("");
+  const [directQuery, setDirectQuery] = useState("");
 
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true })
-  const controls = useAnimation()
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  const controls = useAnimation();
 
   useEffect(() => {
-    if (isInView) {
-      controls.start("visible")
-    }
-  }, [isInView, controls])
+    if (isInView) controls.start("visible");
+  }, [isInView, controls]);
 
-  const handleSearch = () => {
-    onSearch(location, age, day)
-  }
-
-  const handleDirectSearch = () => {
-    onDirectSearch(directQuery)
-  }
+  const handleSearch = () => onSearch(location, age, day);
+  const handleDirectSearch = () => onDirectSearch(directQuery);
 
   return (
-    <section
-      ref={ref}
-      className="relative bg-purple-700 py-16 md:py-24 h-[85vh]"
-    >
+    <section ref={ref} className="relative py-16 md:py-24 h-screen overflow-hidden">
+      {/* Floating Shapes */}
+      <motion.div
+        className="absolute top-10 left-5 w-24 h-24 bg-red-300 opacity-100 rounded-full flex justify-center items-center"
+        variants={pawVariant}
+        animate="animate"
+      >
+        <FaPaw size={48} color="#840C0D" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-1/2 left-1/2 w-52 h-52 bg-violet-300 opacity-100 rounded-full flex justify-center items-center transform -translate-x-1/2 -translate-y-1/2"
+        variants={pawVariant}
+        animate="animate"
+      >
+        <FaPaw size={90} color="#4E0A6D" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-1/3 right-10 w-28 h-28 bg-blue-300 opacity-70 rounded-lg flex justify-center items-center"
+        variants={rotateVariant}
+        animate="animate"
+      >
+        <HiMiniPuzzlePiece size={65} color="#2652F6" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-10 left-20 w-40 h-40 bg-yellow-600 opacity-100 rounded-full flex items-center justify-center"
+        variants={rotateantiVariant}
+        animate="animate"
+      >
+        <FaUmbrellaBeach size={60} color="#E4EB25" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-10 right-1/3 w-16 h-16 bg-green-300 opacity-100 rounded-full"
+        variants={floatVariant}
+        animate="animate"
+      />
+
+      {/* Bear Shape */}
+      <motion.div
+        className="absolute bottom-20 right-20 w-32 h-32 bg-orange-300 opacity-100 rounded-[10px] flex justify-center items-center"
+        variants={rotateantiVariant}
+        animate="animate"
+      >
+        <RiBearSmileFill size={64} color="#FFA500" />
+      </motion.div>
+
+      {/* Additional Floating Shapes */}
+      <motion.div
+        className="absolute top-5 right-1/4 w-20 h-20 bg-pink-300 opacity-90 rounded-full flex justify-center items-center"
+        variants={floatVariant}
+        animate="animate"
+      >
+        <GiMusicalNotes size={40} color="#FF69B4" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-40 left-3/4 w-24 h-24 bg-gray-300 opacity-80 rounded-full flex justify-center items-center"
+        variants={rotateVariant}
+        animate="animate"
+      >
+        <BiSolidBabyCarriage size={50} color="#4B5563" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-32 left-10 w-16 h-16 bg-indigo-300 opacity-90 rounded-full flex justify-center items-center"
+        variants={rotateantiVariant}
+        animate="animate"
+      >
+        <RiStarSmileFill size={36} color="#3B82F6" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-1/4 right-1/2 w-20 h-20 bg-teal-300 opacity-90 rounded-full flex justify-center items-center"
+        variants={floatVariant}
+        animate="animate"
+      >
+        <FaRegFaceSmileBeam size={40} color="#14B8A6" />
+      </motion.div>
+
+      {/* Background overlay */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1533483595632-c5f0e57a1936?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80')",
-        }}
-      ></div>
+        className="absolute inset-0 bg-cover bg-center opacity-50 backdrop-blur-sm bg-rose-100 bg-[url('https://images.unsplash.com/photo-1533483595632-c5f0e57a1936?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80')]"
+        
+      />
+
+      {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
         <motion.h1
-          className="text-3xl md:text-5xl font-bold text-white mb-12"
+          className={`${dynapuff.className} text-shadow-md sm:text-2xl md:text-4xl text-black mb-12 [text-shadow:0.5px_0_0_#fff,-0.5px_0_0_#fff,0_0.5px_0_#fff,0_-0.5px_0_#fff]`}
           variants={popIn}
           initial="hidden"
           animate={controls}
@@ -88,12 +230,12 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
               placeholder="Enter location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full bg-white placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             />
           </div>
           <div className="relative flex-1">
             <select
-              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-full leading-5 bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
+              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-full bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
               value={age}
               onChange={(e) => setAge(e.target.value)}
             >
@@ -110,7 +252,7 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
           </div>
           <div className="relative flex-1">
             <select
-              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-full leading-5 bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
+              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-full bg-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 appearance-none"
               value={day}
               onChange={(e) => setDay(e.target.value)}
             >
@@ -135,15 +277,8 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
           </button>
         </motion.div>
 
-        <motion.div
-          className="mt-8"
-          variants={fadeUp}
-          initial="hidden"
-          animate={controls}
-        >
-          <p className="text-white mb-4">
-            Already know which class you&apos;re looking for?
-          </p>
+        <motion.div className="mt-8" variants={fadeUp} initial="hidden" animate={controls}>
+          <p className="text-white mb-4">Already know which class you're looking for?</p>
           <div className="flex max-w-xl mx-auto">
             <input
               type="text"
@@ -162,5 +297,5 @@ export default function Hero({ onSearch, onDirectSearch }: HeroProps) {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

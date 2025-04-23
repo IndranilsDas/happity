@@ -1,205 +1,239 @@
+// app/admin/providers/page.tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Loader2, Plus, Search, Trash2, Edit, Eye } from "lucide-react"
-import type { Provider } from "@/lib/types"
-import { getAllProviders, deleteProvider } from "@/lib/firebase-service"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Loader2, Search, Trash2, Edit, Eye, Plus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import ProviderForm from "../../../components/admin/provider-form"
-import ProviderDetails from "../../../components/admin/povider-details"
-import AdminDrawer from "../../../components/admin/admin-drawer"
+import AdminDrawer from "@/components/admin/admin-drawer"
+import ProviderDetails from "@/components/admin/provider-details"
+import ProviderForm from "@/components/admin/provider-form"
 
+import type { Provider } from "@/lib/types"
+import {
+  getProviders,
+  deleteProvider,
+} from "@/lib/firebase-service"
 
 export default function ProvidersPage() {
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [filteredProviders, setFilteredProviders] = useState<Provider[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const { toast } = useToast()
 
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [filtered, setFiltered] = useState<Provider[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [search, setSearch] = useState<string>("")
+  const [selected, setSelected] = useState<Provider | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
+  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true)
+
+  // Fetch once on mount
   useEffect(() => {
-    fetchProviders()
+    load()
   }, [])
 
+  // Re‐filter when search or list changes
   useEffect(() => {
-    if (searchQuery) {
-      const filtered = providers.filter(
-        (provider) =>
-          provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          provider.location.toLowerCase().includes(searchQuery.toLowerCase()),
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      setFiltered(
+        providers.filter((u) =>
+          [u.fullName, u.email].some((f) =>
+            f.toLowerCase().includes(q)
+          )
+        )
       )
-      setFilteredProviders(filtered)
     } else {
-      setFilteredProviders(providers)
+      setFiltered(providers)
     }
-  }, [searchQuery, providers])
+  }, [search, providers])
 
-  const fetchProviders = async () => {
+  async function load() {
+    setLoading(true)
     try {
-      setLoading(true)
-      const data = await getAllProviders()
-      setProviders(data)
-      setFilteredProviders(data)
-    } catch (error) {
-      console.error("Error fetching providers:", error)
+      const list = await getProviders()
+      setProviders(list)
+      setFiltered(list)
+    } catch (e) {
+      console.error(e)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load providers",
+        description: "Could not load providers",
       })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this provider?")) {
-      try {
-        await deleteProvider(id)
-        setProviders(providers.filter((provider) => provider.id !== id))
-        toast({
-          title: "Success",
-          description: "Provider deleted successfully",
-        })
-      } catch (error) {
-        console.error("Error deleting provider:", error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to delete provider",
-        })
-      }
+  async function onDelete(id: string) {
+    if (!confirm("Delete this provider?")) return
+    try {
+      await deleteProvider(id)
+      setProviders((prev) => prev.filter((u) => u.id !== id))
+      toast({ title: "Deleted", description: "Provider removed" })
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Delete failed",
+      })
     }
   }
 
-  const handleViewDetails = (provider: Provider) => {
-    setSelectedProvider(provider)
-    setIsDetailsOpen(true)
-  }
-
-  const handleEdit = (provider: Provider) => {
-    setSelectedProvider(provider)
+  function openEdit(u: Provider | null = null) {
+    setSelected(u)
     setIsFormOpen(true)
   }
 
-  const handleFormClose = (refreshData = false) => {
-    setIsFormOpen(false)
-    setSelectedProvider(null)
-    if (refreshData) {
-      fetchProviders()
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
+  function openDetails(u: Provider) {
+    setSelected(u)
+    setIsDetailsOpen(true)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex">
       <AdminDrawer
-                    isDrawerOpen={isDrawerOpen}
-                    toggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}
-                  />
-      <div className="px-10" style={{
-        width: isDrawerOpen ? "calc(100% - 12rem)" : "calc(100% - 3.5rem)",
-        marginLeft: isDrawerOpen ? "12rem" : "3.5rem",
-      }}>
-      <div  className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Providers</h1>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setSelectedProvider(null)}>
-              <Plus className="mr-2 h-4 w-4" /> Add Provider
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{selectedProvider ? "Edit Provider" : "Add New Provider"}</DialogTitle>
-            </DialogHeader>
-            <ProviderForm provider={selectedProvider} onClose={handleFormClose} />
-          </DialogContent>
-        </Dialog>
-      </div>
+        isDrawerOpen={isDrawerOpen}
+        toggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}
+      />
+      <div
+        className="px-10 py-10"
+        style={{
+          width: isDrawerOpen
+            ? "calc(100% - 12rem)"
+            : "calc(100% - 3.5rem)",
+          marginLeft: isDrawerOpen ? "12rem" : "3.5rem",
+        }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold">Providers</h1>
+          <Button onClick={() => openEdit()}>
+            <Plus className="mr-2 h-4 w-4" /> Add Provider
+          </Button>
+        </div>
 
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative max-w-sm mb-4">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search providers..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-      </div>
 
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Activities</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProviders.length === 0 ? (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  {searchQuery ? "No providers found matching your search" : "No providers found"}
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Verified</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredProviders.map((provider) => (
-                <TableRow key={provider.id}>
-                  <TableCell className="font-medium">{provider.name}</TableCell>
-                  <TableCell>{provider.location}</TableCell>
-                  <TableCell>{provider.activities}</TableCell>
-                  <TableCell>{provider.rating}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleViewDetails(provider)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(provider)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(provider.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    <Loader2 className="animate-spin mx-auto h-5 w-5" />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    {search
+                      ? "No providers match your search"
+                      : "No providers found"}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell>{u.fullName}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>
+                      {u.emailVerified ? "Yes" : "No"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openDetails(u)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEdit(u)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDelete(u.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Provider Details</DialogTitle>
-          </DialogHeader>
-          {selectedProvider && <ProviderDetails provider={selectedProvider} />}
-        </DialogContent>
-      </Dialog>
-    </div>
+        {/* Add/Edit Form */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selected ? "Edit Provider" : "Add Provider"}</DialogTitle>
+            </DialogHeader>
+            <ProviderForm
+              provider={selected}
+              onClose={(saved?: boolean) => {
+                setIsFormOpen(false)
+                setSelected(null)
+                if (saved) load()
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Details Dialog */}
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Provider Details</DialogTitle>
+            </DialogHeader>
+            {selected && <ProviderDetails provider={selected} />}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   )
 }

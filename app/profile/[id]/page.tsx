@@ -40,6 +40,7 @@ export default function ProfilePage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
+  console.log("profile user", user, role, loading )
   // Check if user is authorized to view this profile
   useEffect(() => {
     if (!loading) {

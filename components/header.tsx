@@ -18,15 +18,7 @@ export default function Header() {
 
   return (
     <>
-      <div className="bg-yellow-400 py-3 text-center">
-        <p className="text-sm md:text-base">FREE COFFEE AT WAGAMAMA 🔵</p>
-        <p className="text-sm md:text-base">
-          Download their new rewards app Soul Club and enjoy a free Grind coffee 🛒 T&C&apos;s apply,
-          <Link href="#" className="underline ml-1">
-            head to wagamama.
-          </Link>
-        </p>
-      </div>
+      
       <header className="flex justify-between items-center px-4 md:px-12 py-2 bg-white">
         <Link href="/" className="flex items-center">
           <Image

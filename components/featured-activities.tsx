@@ -3,8 +3,25 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { motion } from "framer-motion"
 import { getAllActivities } from "@/lib/firebase-service"
 import type { Activity } from "@/lib/types"
+import { Gloria_Hallelujah } from "next/font/google"
+import { MdLocationPin } from "react-icons/md"
+import { DynaPuff } from "next/font/google"
+
+const gloriahallelujah = Gloria_Hallelujah({
+  subsets: ["latin"],
+  weight: "400",
+})
+
+const dynapuff = DynaPuff({
+  subsets: ["latin"],
+  weight: "400",
+})
+
+// Create a motion‐wrapped Link to apply hover animations on the <a> itself
+const MotionLink = motion(Link)
 
 export default function FeaturedActivities() {
   const [featuredActivities, setFeaturedActivities] = useState<Activity[]>([])
@@ -14,7 +31,7 @@ export default function FeaturedActivities() {
     async function fetchFeatured() {
       try {
         const all = await getAllActivities()
-        const featured = all.filter((a) => (a as any).featured)
+        const featured = all.filter((a: any) => a.featured)
         setFeaturedActivities(featured)
       } catch (err) {
         console.error("Error loading activities", err)
@@ -28,26 +45,36 @@ export default function FeaturedActivities() {
   if (loading) {
     return <p className="text-center py-10">Loading featured activities…</p>
   }
-
-  if (featuredActivities.length === 0) {
+  if (!featuredActivities.length) {
     return <p className="text-center py-10">No featured activities found.</p>
   }
 
   return (
-    <section className="py-16 px-4 md:px-12 bg-white">
+    <section className="py-16 px-4 md:px-12 bg-white bg-[url('/images/clouds.jpg')] bg-cover bg-no-repeat">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl md:text-5xl font-bold text-purple-700 mb-12 text-center">
+        {/* Section Heading */}
+        <h2
+          className={`
+            inline-block 
+            text-3xl md:text-4xl 
+            font-bold text-white
+            py-4 px-6 
+            rounded-md mb-12 mx-auto
+            ${dynapuff.className}
+          `}
+        >
           FEATURED ACTIVITIES
-        </h1>
+        </h2>
 
+        {/* Activity Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredActivities.map((activity) => (
-            <Link
-              key={activity.id}
-              href={`/activities/${activity.id}`}
-              className="group hover:scale-105 hover:bg-purple-200 duration-300 block"
-            >
-              <div className="rounded-lg shadow-md overflow-hidden transition-transform group-hover:shadow-lg">
+            <Link key={activity.id} href={`/activities/${activity.id}`}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="cursor-pointer overflow-hidden rounded-2xl bg-white/50 backdrop-blur-lg shadow-lg transition-shadow hover:shadow-2xl"
+              >
+                {/* Image + Featured Badge */}
                 <div className="relative h-48">
                   <Image
                     src={activity.image || "/placeholder.svg"}
@@ -55,39 +82,53 @@ export default function FeaturedActivities() {
                     fill
                     className="object-cover"
                   />
-                  <div className="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded text-sm font-bold">
+                  <span
+                    className="absolute top-3 left-3 bg-yellow-500 px-2 py-1 text-xs font-semibold uppercase text-white rounded"
+                  >
                     Featured
-                  </div>
+                  </span>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-purple-700 mb-2">
+
+                {/* Content */}
+                <div className="p-6">
+                  <h3
+                    className={`mb-2 text-2xl font-bold text-purple-700 ${dynapuff.className}`}
+                  >
                     {activity.name}
                   </h3>
-                  <p className="text-gray-600 mb-2">{activity.category}</p>
-                  <p className="text-gray-700 mb-4">
+
+                  <span className="mb-3 inline-block rounded-full bg-purple-100 px-3 py-1 text-sm uppercase text-purple-700">
+                    {activity.category}
+                  </span>
+
+                  <p className="mb-4 flex items-center text-gray-600">
+                    <MdLocationPin className="mr-1 text-purple-500" />
                     {activity.location?.city || "Unknown"}
                   </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-purple-700 font-bold">
-                      {activity.price}
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-md font-bold text-black">
+                    ₹{activity.price}
                     </span>
-                    <span className="text-gray-600 text-sm">
+                    <span className="rounded bg-gray-200 px-2 py-1 text-xs font-medium text-gray-800">
                       {activity.ageRange}
                     </span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </Link>
           ))}
         </div>
 
-        <div className="text-center mt-8">
-          <Link
+        {/* View All Activities Button */}
+        <div className="mt-12 text-center">
+          <MotionLink
             href="/activities"
-            className="inline-block bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-8 rounded-full"
+            whileHover={{ scale: 1.1 }}
+            className="inline-block rounded-full bg-purple-700 px-8 py-3 font-bold text-white transition-colors hover:bg-purple-800"
           >
             VIEW ALL ACTIVITIES
-          </Link>
+          </MotionLink>
         </div>
       </div>
     </section>

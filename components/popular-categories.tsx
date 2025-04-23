@@ -8,6 +8,16 @@ import type { Category } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Prompt } from "next/font/google"
 import { motion, AnimatePresence, MotionConfig } from "framer-motion"
+import { Gloria_Hallelujah } from "next/font/google"
+import { DynaPuff } from "next/font/google"
+
+const dynapuff = DynaPuff({
+  subsets: ["latin"],
+  weight: "400",
+})
+
+
+const gloriahallelujah = Gloria_Hallelujah({ subsets: ["latin"], weight: "400" });
 
 const schoolbell = Prompt({
   weight: "400",
@@ -39,7 +49,7 @@ export default function PopularCategories() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <section className="w-full py-12 px-4 md:px-6">
+      <section className={`${dynapuff.className} w-full py-12 px-4 md:px-6 bg-gradient-to-tr from-rose-300  via-cyan-100 to-slate-50  bg-cover bg-no-repeat`}>
         <motion.div
           className="container mx-auto"
           initial={{ opacity: 0 }}
@@ -47,7 +57,7 @@ export default function PopularCategories() {
           transition={{ duration: 0.7 }}
         >
           <motion.h2
-            className="text-4xl md:text-5xl font-bold text-center mb-12 text-purple-700"
+            className={`${dynapuff.className} text-4xl md:text-4xl font-bold py-8 text-center mb-12 text-purple-800`}
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -142,7 +152,7 @@ export default function PopularCategories() {
                       <motion.div
                         whileHover={{
                           scale: 1.05,
-                          boxShadow: "0 10px 25px rgba(124, 58, 237, 0.2)",
+                          boxShadow: "0 10px 25px rgba(104, 58, 237, 0.2)",
                         }}
                         whileTap={{ scale: 0.98 }}
                         transition={{
@@ -168,12 +178,12 @@ export default function PopularCategories() {
                               initial={{ opacity: 0.7 }}
                               whileHover={{
                                 opacity: 0.9,
-                                background: "rgba(126, 34, 206, 0.7)",
+                                background: "rgba(100, 34, 100, 0.7)",
                               }}
                             >
                               <CardContent className="p-0">
                                 <motion.h3
-                                  className={`${schoolbell.className} text-white text-2xl font-bold text-center px-4`}
+                                  className={`text-white text-2xl font-bold text-center px-4`}
                                   whileHover={{ scale: 1.1 }}
                                   transition={{ type: "spring", stiffness: 300 }}
                                 >

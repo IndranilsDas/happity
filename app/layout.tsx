@@ -7,6 +7,12 @@ import { usePathname, useRouter } from "next/navigation"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Walter_Turncoat } from "next/font/google"
+import { DynaPuff } from "next/font/google"
+
+const dynaPuff = DynaPuff({
+  subsets: ["latin"],
+  weight: "400",
+})
 
 const walterTurncoat = Walter_Turncoat({
   weight: "400",
@@ -53,7 +59,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <body className={`${inter.className} bg-white text-gray-900`}>
+      <body className={`${dynaPuff.className} bg-white text-gray-900`}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -62,7 +68,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <body className={`${isAdminOrProvider ? inter.className : walterTurncoat.className} bg-white text-gray-900`}>
+    <body className={`${isAdminOrProvider ? inter.className : dynaPuff.className} bg-white text-gray-900`}>
       {!isAdminOrProvider &&
         !pathname.startsWith("/sign-up") &&
         !pathname.startsWith("/sign-in") && <Header />}

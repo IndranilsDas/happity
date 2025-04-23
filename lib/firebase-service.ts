@@ -96,48 +96,47 @@ export const getFeaturedActivities = async (): Promise<Activity[]> => {
 }
 
 // ───────────── Providers ─────────────
-
 export const getProviders = async (): Promise<Provider[]> => {
-  const snap = await getDocs(collection(db, "providers"))
+  const q = query(collection(db, "users"), where("role", "==", "provider"))
+  const snap = await getDocs(q)
   return snap.docs.map(d => converter<Provider>(d))
 }
 
 export const getProviderById = async (id: string): Promise<Provider | null> => {
-  const refDoc = doc(db, "providers", id)
-  const snap = await getDoc(refDoc)
-  return snap.exists() ? converter<Provider>(snap) : null
+  const ref = doc(db, "users", id)
+  const snap = await getDoc(ref)
+  return snap.exists() && snap.data()?.role === "provider"
+    ? converter<Provider>(snap)
+    : null
 }
 
 export const getAllProviders = getProviders
 
-export const addProvider = async (
-  provider: Omit<Provider, "id">
-): Promise<string> => {
-  const docRef = await addDoc(collection(db, "providers"), {
+export const addProvider = async (provider: Omit<Provider, "id">): Promise<string> => {
+  const ref = await addDoc(collection(db, "users"), {
     ...provider,
+    role: "provider",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
-  return docRef.id
+  return ref.id
 }
 
-export const updateProvider = async (
-  id: string,
-  provider: Partial<Provider>
-): Promise<void> => {
-  const refDoc = doc(db, "providers", id)
-  await updateDoc(refDoc, {
+export const updateProvider = async (id: string, provider: Partial<Provider>): Promise<void> => {
+  const ref = doc(db, "users", id)
+  await updateDoc(ref, {
     ...provider,
     updatedAt: serverTimestamp(),
   })
 }
 
 export const deleteProvider = async (id: string): Promise<void> => {
-  await deleteDoc(doc(db, "providers", id))
+  await deleteDoc(doc(db, "users", id))
 }
 
 export const getProvidersCount = async (): Promise<number> => {
-  const snap = await getDocs(collection(db, "providers"))
+  const q = query(collection(db, "users"), where("role", "==", "provider"))
+  const snap = await getDocs(q)
   return snap.size
 }
 
